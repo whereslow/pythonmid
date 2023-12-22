@@ -1,6 +1,5 @@
 #include <iostream>
-#include "method.h"
+#include "Parser.h"
 int main(){
-    string A;
-    std::cout<<loadKeywords(A);
+    
 }
