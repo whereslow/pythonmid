@@ -33,6 +33,4 @@
 
 /build/*
 
-.gitignore
-
 settings.json
