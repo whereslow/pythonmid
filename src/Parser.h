@@ -8,6 +8,10 @@
 
 
 
+/*关键字 ->| 对应处理方式状态值*/
+typedef std::map<std::string,std::string> keywordMap;
+
+typedef std::string string;
 /*xml对应的链表,代替AST*/
 struct CodeStruction
 {
@@ -22,10 +26,7 @@ struct CodeStruction
 
 typedef std::vector<CodeStruction> pyTable;
 
-/*关键字 ->| 对应处理方式状态值*/
-typedef std::map<std::string,std::string> keywordMap;
 
-typedef std::string string;
 
 class Parser
 {
