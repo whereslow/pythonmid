@@ -37,103 +37,76 @@ class midPaser:
         pass
     def vectorize(self,filename:str) ->list[str]:
         with open(filename,'r',encoding='utf-8') as f:
-            fstrlist=f.read().replace('    ','^TAB ').replace("\n"," ").split(" ")
+            token_vector=f.read().replace('    ','^TAB ').replace("\n"," ").split(" ")
             try:
                 while True:
-                    fstrlist.remove('')
+                    token_vector.remove('')
             except ValueError:
                 pass
             # 控制流适配符号向量化处理
             i = 0
-            while i!=len(fstrlist)-1:
+            while i!=len(token_vector)-1:
                 i+=1
-                if ':' in fstrlist[i]:
-                    temp = fstrlist[i].split(':')
-                    if temp[0] != "" and temp[1] != "":
-                        fstrlist.insert(i+1,temp[1])
-                        fstrlist[i] = temp[0]
-                    elif temp[0] != "" and temp[1] == "":
-                        fstrlist[i] = fstrlist[i].replace(':', '')
-                    elif temp[0] == "" and temp[1]!= "":
-                        fstrlist[i] = fstrlist[i].replace(':', '')
-                    elif temp[0] == "" and temp[1] == "":
-                        del fstrlist[i]
-                    else:
-                        raise ValueError
-                if '(' in fstrlist[i]:
-                    temp = fstrlist[i].split('(')
-                    if len(temp) > 2:
-                        multiflag = True
-                        for j in range(2,len(temp)):
-                            temp[j]='('+temp[j]
-                            temp[1]+=temp[j]
-                    else:
-                        multiflag = False
-                    if temp[0] != "" and temp[1] != "":
-                        del fstrlist[i]
-                        fstrlist.insert(i,temp[1])
-                        fstrlist.insert(i,'(')
-                        fstrlist.insert(i,temp[0])
-                        if multiflag:
-                            i+=1
-                        else:
-                            i+=2
-                    elif temp[0] != "" and temp[1] == "":
-                        del fstrlist[i]
-                        fstrlist.insert(i,'(')
-                        fstrlist.insert(i,temp[0])
-                        i+=1
-                    elif temp[0] == "" and temp[1]!= "":
-                        del fstrlist[i]
-                        fstrlist.insert(i,temp[1])
-                        fstrlist.insert(i,'(')
-                        if multiflag:
-                            i+=0
-                        else:
-                            i+=1
-                    elif temp[0] == "" and temp[1] == "":
-                        pass
-                    else:
-                        raise ValueError
-                if ')' in fstrlist[i]:
-                    temp = fstrlist[i].split(')')
-                    if len(temp) > 2:
-                        multiflag = True
-                        for j in range(2,len(temp)):
-                            temp[j]=')'+temp[j]
-                            temp[1]+=temp[j]
-                    else:
-                        multiflag = False
-                    if temp[0] != "" and temp[1] != "":
-                        del fstrlist[i]
-                        fstrlist.insert(i,temp[1])
-                        fstrlist.insert(i,')')
-                        fstrlist.insert(i,temp[0])
-                        if multiflag:
-                            i+=1
-                        else:
-                            i+=2
-                    elif temp[0] != "" and temp[1] == "":
-                        del fstrlist[i]
-                        fstrlist.insert(i,')')
-                        fstrlist.insert(i,temp[0])
-                        i+=1
-                    elif temp[0] == "" and temp[1]!= "":
-                        del fstrlist[i]
-                        fstrlist.insert(i,temp[1])
-                        fstrlist.insert(i,')')
-                        if multiflag:
-                            i+=0
-                        else:
-                            i+=1
-                    elif temp[0] == "" and temp[1] == "":
-                        pass
-                    else:
-                        raise ValueError
-            return fstrlist
+                if ':' in token_vector[i]:
+                    i,token_vector = symbolDivide(i,token_vector,':')
+                if '(' in token_vector[i]:
+                    i,token_vector = symbolHeightLightDivide(i,token_vector,'(')
+                if ')' in token_vector[i]:
+                    i,token_vector = symbolHeightLightDivide(i,token_vector,')')
+            return token_vector
     def parse(self,code:str):
         pass
-    
+#特殊字符处理工具函数
+def symbolDivide(index:int,token_vector:list[str],symbol:str):
+    temp = token_vector[index].split(symbol)
+    if temp[0] != "" and temp[1] != "":
+        token_vector.insert(index+1,temp[1])
+        token_vector[index] = temp[0]
+    elif temp[0] != "" and temp[1] == "":
+        token_vector[index] = token_vector[index].replace(symbol, '')
+    elif temp[0] == "" and temp[1]!= "":
+        token_vector[index] = token_vector[index].replace(symbol, '')
+    elif temp[0] == "" and temp[1] == "":
+        del token_vector[index]
+    else:
+        raise ValueError
+    return index,token_vector
+def symbolHeightLightDivide(index:int,token_vector:list[str],symbol:str):
+        temp = token_vector[index].split(symbol)
+        if len(temp) > 2:
+            multiflag = True
+            for j in range(2,len(temp)):
+                temp[j]=symbol+temp[j]
+                temp[1]+=temp[j]
+        else:
+            multiflag = False
+        if temp[0] != "" and temp[1] != "":
+            del token_vector[index]
+            token_vector.insert(index,temp[1])
+            token_vector.insert(index,symbol)
+            token_vector.insert(index,temp[0])
+            if multiflag:
+                index+=1
+            else:
+                index+=2
+        elif temp[0] != "" and temp[1] == "":
+            del token_vector[index]
+            token_vector.insert(index,symbol)
+            token_vector.insert(index,temp[0])
+            index+=1
+        elif temp[0] == "" and temp[1]!= "":
+            del token_vector[index]
+            token_vector.insert(index,temp[1])
+            token_vector.insert(index,symbol)
+            if multiflag:
+                index+=0
+            else:
+                index+=1
+        elif temp[0] == "" and temp[1] == "":
+            pass
+        else:
+            raise ValueError
+        return index,token_vector
 if __name__ == '__main__':
     p=midPaser()
     print(p.vectorize('C:/Users/whereslow/Desktop/b.py'))
