@@ -1,13 +1,17 @@
 import json
+
 from dataclasses import dataclass
+from typing import List
 
 @dataclass
-class pyTable:
+class frag:
     Id:int
     Type:str
-    sonStruct:any
+    sonfrag:any
     propertys:list[str]
     code:str
+
+pyTable=List[frag]
 
 @dataclass
 class keywords:
@@ -15,14 +19,15 @@ class keywords:
     keywordMap:dict
 class midPaser:
     """代理keywords和做方法载体"""
-    #def __init__(self,jsonPath) -> None:
-    #    self.keywords = self.loadKeywordsFromJson(jsonPath)
+    def __init__(self,jsonPath) -> None:
+        self.keywords = self.loadKeywordsFromJson(jsonPath)
     def loadKeywordsFromJson(jsonPath) -> keywords:
         keywordstruct = keywords()
         jsondict = json.load(jsonPath)
         for i in jsondict:
             keywordstruct.keyword.append(i['keyword'])
             keywordstruct.keywordMap.update({i['keyword']:i['Type']})
+        return keywordstruct
     def loadPyTableFromPython(pythonPath) -> pyTable:
         pass
     def loadPyTableFromJson(jsonPath) -> pyTable:
@@ -35,7 +40,7 @@ class midPaser:
         pass
     def diffPyTable(pyTable1,pyTable2):#不太确定
         pass
-    def vectorize(self,filename:str) ->list[str]:
+    def vectorize(filename:str) ->list[str]:
         with open(filename,'r',encoding='utf-8') as f:
             token_vector=f.read().replace('    ','^TAB ').replace("\n"," ").split(" ")
             try:
@@ -55,7 +60,16 @@ class midPaser:
                     i,token_vector = symbolHeightLightDivide(i,token_vector,')')
             return token_vector
     def parse(self,code:str):
-        pass
+        strVec = self.vectorize(code)
+        #由self.keywords获取符号
+        inSymbol = set()
+        outSymbol = set()
+        structSymbol = set()
+        #~
+        #转移容器
+        pytable = []
+        #~
+        
 #特殊字符处理工具函数
 def symbolDivide(index:int,token_vector:list[str],symbol:str):
     temp = token_vector[index].split(symbol)
@@ -108,5 +122,4 @@ def symbolHeightLightDivide(index:int,token_vector:list[str],symbol:str):
             raise ValueError
         return index,token_vector
 if __name__ == '__main__':
-    p=midPaser()
-    print(p.vectorize('C:/Users/whereslow/Desktop/b.py'))
+    print(midPaser.vectorize('C:/Users/whereslow/Desktop/b.py'))
