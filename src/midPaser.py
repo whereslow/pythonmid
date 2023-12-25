@@ -5,8 +5,8 @@ from typing import List
 
 @dataclass
 class frag:
-    Id:int
-    Type:str
+    Id:int      #1,2,3...
+    Type:str    #一个N个结构的头用-分隔,剩余用_分隔的描述串,N-frag1_frag2_frag3_...
     sonfrag:any
     propertys:list[str]
     code:str
@@ -16,7 +16,7 @@ pyTable=List[frag]
 @dataclass
 class keywords:
     keyword:list[str]
-    keywordMap:dict
+    keywordMap:dict #keyword To {frag 或 in 或 out}
 class midPaser:
     """代理keywords和做方法载体"""
     def __init__(self,jsonPath) -> None:
@@ -53,25 +53,28 @@ class midPaser:
             while i!=len(token_vector)-1:
                 i+=1
                 if ':' in token_vector[i]:
-                    i,token_vector = symbolDivide(i,token_vector,':')
+                    i,token_vector = symbolDivideSemicolon(i,token_vector,':')
                 if '(' in token_vector[i]:
-                    i,token_vector = symbolHeightLightDivide(i,token_vector,'(')
+                    i,token_vector = symbolHeightLightDivideBracket(i,token_vector,'(')
                 if ')' in token_vector[i]:
-                    i,token_vector = symbolHeightLightDivide(i,token_vector,')')
+                    i,token_vector = symbolHeightLightDivideBracket(i,token_vector,')')
             return token_vector
     def parse(self,code:str):
         strVec = self.vectorize(code)
         #由self.keywords获取符号
+        fragSymbol = set()
         inSymbol = set()
         outSymbol = set()
-        structSymbol = set()
         #~
         #转移容器
         pytable = []
         #~
+        #临时容器
+        fatherfrag=[]
+        #~
         
-#特殊字符处理工具函数
-def symbolDivide(index:int,token_vector:list[str],symbol:str):
+#特殊字符处理的工具函数
+def symbolDivideSemicolon(index:int,token_vector:list[str],symbol=':'):
     temp = token_vector[index].split(symbol)
     if temp[0] != "" and temp[1] != "":
         token_vector.insert(index+1,temp[1])
@@ -85,41 +88,42 @@ def symbolDivide(index:int,token_vector:list[str],symbol:str):
     else:
         raise ValueError
     return index,token_vector
-def symbolHeightLightDivide(index:int,token_vector:list[str],symbol:str):
-        temp = token_vector[index].split(symbol)
-        if len(temp) > 2:
-            multiflag = True
-            for j in range(2,len(temp)):
-                temp[j]=symbol+temp[j]
-                temp[1]+=temp[j]
-        else:
-            multiflag = False
-        if temp[0] != "" and temp[1] != "":
-            del token_vector[index]
-            token_vector.insert(index,temp[1])
-            token_vector.insert(index,symbol)
-            token_vector.insert(index,temp[0])
-            if multiflag:
-                index+=1
-            else:
-                index+=2
-        elif temp[0] != "" and temp[1] == "":
-            del token_vector[index]
-            token_vector.insert(index,symbol)
-            token_vector.insert(index,temp[0])
+def symbolHeightLightDivideBracket(index:int,token_vector:list[str],symbol:str):
+    assert symbol in {'(',')'}
+    temp = token_vector[index].split(symbol)
+    if len(temp) > 2:
+        multiflag = True
+        for j in range(2,len(temp)):
+            temp[j]=symbol+temp[j]
+            temp[1]+=temp[j]
+    else:
+        multiflag = False
+    if temp[0] != "" and temp[1] != "":
+        del token_vector[index]
+        token_vector.insert(index,temp[1])
+        token_vector.insert(index,symbol)
+        token_vector.insert(index,temp[0])
+        if multiflag:
             index+=1
-        elif temp[0] == "" and temp[1]!= "":
-            del token_vector[index]
-            token_vector.insert(index,temp[1])
-            token_vector.insert(index,symbol)
-            if multiflag:
-                index+=0
-            else:
-                index+=1
-        elif temp[0] == "" and temp[1] == "":
-            pass
         else:
-            raise ValueError
-        return index,token_vector
+            index+=2
+    elif temp[0] != "" and temp[1] == "":
+        del token_vector[index]
+        token_vector.insert(index,symbol)
+        token_vector.insert(index,temp[0])
+        index+=1
+    elif temp[0] == "" and temp[1]!= "":
+        del token_vector[index]
+        token_vector.insert(index,temp[1])
+        token_vector.insert(index,symbol)
+        if multiflag:
+            index+=0
+        else:
+            index+=1
+    elif temp[0] == "" and temp[1] == "":
+        pass
+    else:
+        raise ValueError
+    return index,token_vector
 if __name__ == '__main__':
     print(midPaser.vectorize('C:/Users/whereslow/Desktop/b.py'))
