@@ -11,16 +11,16 @@ class frag:
     propertys:list[str]
     code:str
 
-pyTable=List[frag]
+PyTable=List[frag]
 
 @dataclass
 class keywords:
-    keyword:list[str]
     keywordMap:dict #keyword To {frag 或 in 或 out}
+
 class midPaser:
     """代理keywords和做方法载体"""
     def __init__(self,jsonPath) -> None:
-        self.keywords = self.loadKeywordsFromJson(jsonPath)
+        self.keywords:keywords = self.loadKeywordsFromJson(jsonPath)
     def loadKeywordsFromJson(jsonPath) -> keywords:
         keywordstruct = keywords()
         jsondict = json.load(jsonPath)
@@ -28,15 +28,17 @@ class midPaser:
             keywordstruct.keyword.append(i['keyword'])
             keywordstruct.keywordMap.update({i['keyword']:i['Type']})
         return keywordstruct
-    def loadPyTableFromPython(pythonPath) -> pyTable:
+    def loadPyTableFromPython(pythonPath) -> PyTable:
         pass
-    def loadPyTableFromJson(jsonPath) -> pyTable:
+    def loadPyTableFromJson(jsonPath) -> PyTable:
         pass
     def dumpPyTableToJson(pyTable,jsonPath) -> None:
         pass
+    def dumpPyTableToXml(pyTable,xmlPath) -> None:
+        pass
     def dumpPyTableToPython(pyTable,pythonPath) -> None:
         pass
-    def changePyTable(pyTable,changeDict) -> pyTable:
+    def changePyTable(pyTable,changeDict) -> PyTable:
         pass
     def diffPyTable(pyTable1,pyTable2):#不太确定
         pass
@@ -60,19 +62,56 @@ class midPaser:
                     i,token_vector = symbolHeightLightDivideBracket(i,token_vector,')')
             return token_vector
     def parse(self,code:str):
-        strVec = self.vectorize(code)
-        #由self.keywords获取符号
-        fragSymbol = set()
-        inSymbol = set()
-        outSymbol = set()
-        #~
+        tokenVec = self.vectorize(code)
+        divideSymbols = {'^TAB','(',')'}
+        state = None
         #转移容器
         pytable = []
         #~
         #临时容器
         fatherfrag=[]
         #~
-        
+        for token in tokenVec:
+            if token in self.keywords.keywordMap:
+                if self.keywords.keywordMap[token] == 'frag':
+                    match state:
+                        case 'frag':
+                            pass
+                        case 'in':
+                            pass
+                        case 'out':
+                            pass
+                        case None:
+                            pass
+                elif self.keywords.keywordMap[token] == 'in':
+                    match state:
+                        case 'frag':
+                            pass
+                        case 'in':
+                            pass
+                        case 'out':
+                            pass
+                        case None:
+                            pass
+                elif self.keywords.keywordMap[token] == 'out':
+                    match state:
+                        case 'frag':
+                            pass
+                        case 'in':
+                            pass
+                        case 'out':
+                            pass
+                        case None:
+                            pass
+            elif token in divideSymbols:
+                if token == '^TAB':
+                    pass
+                elif token == '(':
+                    pass
+                elif token == ')':
+                    pass
+            else: #是普通的token字段
+                pass
 #特殊字符处理的工具函数
 def symbolDivideSemicolon(index:int,token_vector:list[str],symbol=':'):
     temp = token_vector[index].split(symbol)
