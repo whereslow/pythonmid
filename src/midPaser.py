@@ -6,7 +6,7 @@ from typing import List
 @dataclass
 class frag:
     Id:int      #1,2,3...
-    Type:str    #一个N个结构的头用-分隔,剩余用_分隔的描述串,N-frag1_frag2_frag3_...
+    fragType:str    #一个N个结构的头用-分隔,剩余用_分隔的描述串,N-frag1_frag2_frag3_...
     sonfrag:any
     propertys:list[str]
     code:str
@@ -66,23 +66,52 @@ class midPaser:
         divideSymbols = {'^TAB','(',')'}
         state = None
         #转移容器
-        pytable = []
+        pytable = [frag]
         #~
-        #临时容器
-        fatherfrag=[]
+        #状态容器
+        fatherfrag = []
+        tab_state = 0
+        tab_count = 0
         #~
         for token in tokenVec:
-            if token in self.keywords.keywordMap:
+            if token != '^TAB' and tab_count != 0: #TAB状态终止,同时决定是否切换状态
+                if tab_state == tab_count:
+                    tab_count=0
+                elif tab_state < tab_count: #产生子结构 状态标志'sonfrag'
+                    tab_state = tab_count
+                    tab_count=0
+                    state ='sonfrag'
+                elif tab_state > tab_count: #结束子结构,并进入父结构'fatherfrag'
+                    tab_state = tab_count
+                    tab_count=0
+                    state = 'fatherfrag'
+            if token in self.keywords.keywordMap or token in divideSymbols:
                 if self.keywords.keywordMap[token] == 'frag':
                     match state:
                         case 'frag':
-                            pass
+                            state = 'frag'
+                            
+                            percentfrag.fragType = f"{len(fatherfrag)+1}-{percentfrag.fragType}"
+                            fatherfrag.clear()
+                            
+                            percentfrag = frag(id=pytable.count(token)+1,fragType=token)
+                            pytable.append(percentfrag)
                         case 'in':
-                            pass
+                            raise Exception('in construction can not shift to frag with no ^TAB')
                         case 'out':
+                            raise Exception('out construction can not shift to frag with no ^TAB')
+                        case '^TAB':
+                            tab_count += 1
+                        case '(':
+                            pass
+                        case ')':
+                            pass
+                        case 'sonfrag':
+                            pass
+                        case 'fatherfrag':
                             pass
                         case None:
-                            pass
+                            pytable.append(frag(id=pytable.count(token)+1,fragType=token))
                 elif self.keywords.keywordMap[token] == 'in':
                     match state:
                         case 'frag':
@@ -90,6 +119,16 @@ class midPaser:
                         case 'in':
                             pass
                         case 'out':
+                            pass
+                        case '^TAB':
+                            tab_count+=1
+                        case '(':
+                            pass
+                        case ')':
+                            pass
+                        case 'sonfrag':
+                            pass
+                        case 'fatherfrag':
                             pass
                         case None:
                             pass
@@ -101,17 +140,98 @@ class midPaser:
                             pass
                         case 'out':
                             pass
+                        case '^TAB':
+                            tab_count+=1
+                        case '(':
+                            pass
+                        case ')':
+                            pass
+                        case 'sonfrag':
+                            pass
+                        case 'fatherfrag':
+                            pass
                         case None:
                             pass
-            elif token in divideSymbols:
-                if token == '^TAB':
-                    pass
+                elif token == '^TAB':
+                    match state:
+                        case 'frag':
+                            pass
+                        case 'in':
+                            pass
+                        case 'out':
+                            pass
+                        case '^TAB':
+                            pass
+                        case '(':
+                            pass
+                        case ')':
+                            pass
+                        case 'sonfrag':
+                            pass
+                        case 'fatherfrag':
+                            pass
+                        case None:
+                            pass
                 elif token == '(':
-                    pass
+                    match state:
+                        case 'frag':
+                            pass
+                        case 'in':
+                            pass
+                        case 'out':
+                            pass
+                        case '^TAB':
+                            pass
+                        case '(':
+                            pass
+                        case ')':
+                            pass
+                        case 'sonfrag':
+                            pass
+                        case 'fatherfrag':
+                            pass
+                        case None:
+                            pass
                 elif token == ')':
-                    pass
+                    match state:
+                        case 'frag':
+                            pass
+                        case 'in':
+                            pass
+                        case 'out':
+                            pass
+                        case '^TAB':
+                            pass
+                        case '(':
+                            pass
+                        case ')':
+                            pass
+                        case 'sonfrag':
+                            pass
+                        case 'fatherfrag':
+                            pass
+                        case None:
+                            pass
             else: #是普通的token字段
-                pass
+                match state:
+                        case 'frag':
+                            pass
+                        case 'in':
+                            pass
+                        case 'out':
+                            pass
+                        case '^TAB':
+                            pass
+                        case '(':
+                            pass
+                        case ')':
+                            pass
+                        case 'sonfrag':
+                            pass
+                        case 'fatherfrag':
+                            pass
+                        case None:
+                            pass
 #特殊字符处理的工具函数
 def symbolDivideSemicolon(index:int,token_vector:list[str],symbol=':'):
     temp = token_vector[index].split(symbol)
