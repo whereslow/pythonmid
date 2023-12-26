@@ -2,13 +2,12 @@ import json
 
 from dataclasses import dataclass
 from typing import List
-
 @dataclass
 class frag:
     Id:int      #1,2,3...
-    fragType:str    #一个N个结构的头用-分隔,剩余用_分隔的描述串,N-frag1_frag2_frag3_...
-    sonfrag:any
+    fragType:str    #一个N个结构的头用-分隔,剩余用_分隔的描述串,N-frag1_frag2_frag3_...,上n级节点用n个^分隔
     propertys:list[str]
+    sonfrag:list[any]
     code:str
 
 PyTable=List[frag]
@@ -55,36 +54,38 @@ class midPaser:
             while i!=len(token_vector)-1:
                 i+=1
                 if ':' in token_vector[i]:
-                    i,token_vector = symbolDivideSemicolon(i,token_vector,':')
+                    i,token_vector = symbolDivideHeighLightSemicolon(i,token_vector,':')
                 if '(' in token_vector[i]:
-                    i,token_vector = symbolHeightLightDivideBracket(i,token_vector,'(')
+                    i,token_vector = symbolHeighLightDivideBracket(i,token_vector,'(')
                 if ')' in token_vector[i]:
-                    i,token_vector = symbolHeightLightDivideBracket(i,token_vector,')')
+                    i,token_vector = symbolHeighLightDivideBracket(i,token_vector,')')
             return token_vector
     def parse(self,code:str):
         tokenVec = self.vectorize(code)
         divideSymbols = {'^TAB','(',')'}
         state = None
         #转移容器
-        pytable = [frag]
+        pytable = []
+        fragtoken = []
         #~
         #状态容器
         fatherfrag = []
+        fatherbracket = []
         tab_state = 0
         tab_count = 0
         #~
         for token in tokenVec:
             if token != '^TAB' and tab_count != 0: #TAB状态终止,同时决定是否切换状态
-                if tab_state == tab_count:
+                if tab_state == tab_count:#不改变状态
                     tab_count=0
                 elif tab_state < tab_count: #产生子结构 状态标志'sonfrag'
-                    tab_state = tab_count
-                    tab_count=0
                     state ='sonfrag'
-                elif tab_state > tab_count: #结束子结构,并进入父结构'fatherfrag'
                     tab_state = tab_count
                     tab_count=0
+                elif tab_state > tab_count: #结束子结构,并进入父结构'fatherfrag'
                     state = 'fatherfrag'
+                    tab_state = tab_count
+                    tab_count=0
             if token in self.keywords.keywordMap or token in divideSymbols:
                 if self.keywords.keywordMap[token] == 'frag':
                     match state:
@@ -94,24 +95,37 @@ class midPaser:
                             percentfrag.fragType = f"{len(fatherfrag)+1}-{percentfrag.fragType}"
                             fatherfrag.clear()
                             
-                            percentfrag = frag(id=pytable.count(token)+1,fragType=token)
+                            fragtoken.append(token)
+                            percentfrag = frag(id=len(fatherfrag)+1,fragType=token+str(fragtoken.count(token)+1))
                             pytable.append(percentfrag)
+                            percentfrag.code+=token
                         case 'in':
-                            raise Exception('in construction can not shift to frag with no ^TAB')
+                            pass
                         case 'out':
-                            raise Exception('out construction can not shift to frag with no ^TAB')
-                        case '^TAB':
-                            tab_count += 1
-                        case '(':
                             pass
-                        case ')':
-                            pass
+                        case '(': #中间作为无结构语义的代码段
+                            percentfrag.code+=token
                         case 'sonfrag':
-                            pass
+                            state = 'frag'
+                            
+                            #添加当前结构的子结构
+                            fatherfrag.append(percentfrag)
+                            percentfrag.sonfrag.append(percentfrag:=frag(id=len(fatherfrag)+1,fragType=token+str(fragtoken.count(token)+1)))
+                            percentfrag.code+=token
                         case 'fatherfrag':
+                            state = 'frag'
+                            
+                            #添加父结构的子结构
+                            fatherfrag:list[frag]
+                            fatherfrag[-1].fragType = f"{fatherfrag[-1].fragType}_{percentfrag.fragType}"
+                            percentfrag = fatherfrag[-1]
+                            percentfrag.sonfrag.append(percentfrag:=frag(id=len(fatherfrag)+1,fragType=token+str(fragtoken.count(token)+1)))
+                            percentfrag.code+=token
+                        case 'code':
                             pass
-                        case None:
-                            pytable.append(frag(id=pytable.count(token)+1,fragType=token))
+                        case None: #第一次产生状态
+                            state = 'frag'
+                            pytable.append(percentfrag:=frag(id=len(fatherfrag)+1,fragType=token))
                 elif self.keywords.keywordMap[token] == 'in':
                     match state:
                         case 'frag':
@@ -120,15 +134,13 @@ class midPaser:
                             pass
                         case 'out':
                             pass
-                        case '^TAB':
-                            tab_count+=1
                         case '(':
-                            pass
-                        case ')':
                             pass
                         case 'sonfrag':
                             pass
                         case 'fatherfrag':
+                            pass
+                        case 'code':
                             pass
                         case None:
                             pass
@@ -140,11 +152,7 @@ class midPaser:
                             pass
                         case 'out':
                             pass
-                        case '^TAB':
-                            tab_count+=1
                         case '(':
-                            pass
-                        case ')':
                             pass
                         case 'sonfrag':
                             pass
@@ -153,25 +161,8 @@ class midPaser:
                         case None:
                             pass
                 elif token == '^TAB':
-                    match state:
-                        case 'frag':
-                            pass
-                        case 'in':
-                            pass
-                        case 'out':
-                            pass
-                        case '^TAB':
-                            pass
-                        case '(':
-                            pass
-                        case ')':
-                            pass
-                        case 'sonfrag':
-                            pass
-                        case 'fatherfrag':
-                            pass
-                        case None:
-                            pass
+                    tab_count+=1
+                    percentfrag.code+="    "
                 elif token == '(':
                     match state:
                         case 'frag':
@@ -180,37 +171,20 @@ class midPaser:
                             pass
                         case 'out':
                             pass
-                        case '^TAB':
-                            pass
                         case '(':
-                            pass
-                        case ')':
                             pass
                         case 'sonfrag':
                             pass
                         case 'fatherfrag':
+                            pass
+                        case 'code':
                             pass
                         case None:
                             pass
                 elif token == ')':
                     match state:
-                        case 'frag':
-                            pass
-                        case 'in':
-                            pass
-                        case 'out':
-                            pass
-                        case '^TAB':
-                            pass
                         case '(':
-                            pass
-                        case ')':
-                            pass
-                        case 'sonfrag':
-                            pass
-                        case 'fatherfrag':
-                            pass
-                        case None:
+                            
                             pass
             else: #是普通的token字段
                 match state:
@@ -220,34 +194,34 @@ class midPaser:
                             pass
                         case 'out':
                             pass
-                        case '^TAB':
-                            pass
                         case '(':
                             pass
-                        case ')':
-                            pass
-                        case 'sonfrag':
-                            pass
-                        case 'fatherfrag':
+                        case 'code':
                             pass
                         case None:
                             pass
 #特殊字符处理的工具函数
-def symbolDivideSemicolon(index:int,token_vector:list[str],symbol=':'):
+def symbolDivideHeighLightSemicolon(index:int,token_vector:list[str],symbol=':'):
+    assert symbol == ':'
     temp = token_vector[index].split(symbol)
     if temp[0] != "" and temp[1] != "":
-        token_vector.insert(index+1,temp[1])
-        token_vector[index] = temp[0]
+        del token_vector[index]
+        token_vector.insert(index,temp[1])
+        token_vector.insert(index,symbol)
+        token_vector.insert(index,temp[0])
+        index+=2
     elif temp[0] != "" and temp[1] == "":
         token_vector[index] = token_vector[index].replace(symbol, '')
+        token_vector.insert(index+1,symbol)
     elif temp[0] == "" and temp[1]!= "":
         token_vector[index] = token_vector[index].replace(symbol, '')
+        token_vector.insert(index-1,symbol)
     elif temp[0] == "" and temp[1] == "":
-        del token_vector[index]
+        pass
     else:
         raise ValueError
     return index,token_vector
-def symbolHeightLightDivideBracket(index:int,token_vector:list[str],symbol:str):
+def symbolHeighLightDivideBracket(index:int,token_vector:list[str],symbol:str):
     assert symbol in {'(',')'}
     temp = token_vector[index].split(symbol)
     if len(temp) > 2:
