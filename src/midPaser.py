@@ -1,15 +1,15 @@
 import json
 
-from dataclasses import dataclass
+from dataclasses import dataclass,field
 from typing import List
 @dataclass
 class frag:
     Id:int      #1,2,3...
-    fragType:str    #一个N个结构的头用-分隔,剩余用_分隔的描述串,N-frag1_frag2_frag3_...,上n级节点用n个^分隔
-    propertys:dict[str]
-    sonfrag:list[any]
-    code:str
-
+    fragType:str = ""  #一个N个结构的头用-分隔,剩余用_分隔的描述串,N-frag1_frag2_frag3_...,上n级节点用n个^分隔
+    propertys:dict[str] =field(default_factory=dict)
+    sonfrag:list[any] = field(default_factory=list)
+    code:str = ""
+    
 PyTable=List[frag]
 
 @dataclass
@@ -19,14 +19,8 @@ class keywords:
 class midPaser:
     """代理keywords和做方法载体"""
     def __init__(self,jsonPath) -> None:
-        self.keywords:keywords = self.loadKeywordsFromJson(jsonPath)
-    def loadKeywordsFromJson(jsonPath) -> keywords:
-        keywordstruct = keywords()
-        jsondict = json.load(jsonPath)
-        for i in jsondict:
-            keywordstruct.keyword.append(i['keyword'])
-            keywordstruct.keywordMap.update({i['keyword']:i['Type']})
-        return keywordstruct
+        with open(jsonPath) as f:
+            self.keywords = keywords(json.load(f))
     def loadPyTableFromPython(pythonPath) -> PyTable:
         pass
     def loadPyTableFromJson(jsonPath) -> PyTable:
@@ -41,7 +35,7 @@ class midPaser:
         pass
     def diffPyTable(pyTable1,pyTable2):
         pass
-    def vectorize(filename:str) ->list[str]:
+    def vectorize(self,filename:str) ->list[str]:
         with open(filename,'r',encoding='utf-8') as f:
             token_vector=f.read().replace('    ','^TAB ').replace("\n"," ").split(" ")
             try:
@@ -88,7 +82,7 @@ class midPaser:
                     tab_diff = tab_state - tab_count
                     tab_count=0
             if token in self.keywords.keywordMap or token in divideSymbols:
-                if self.keywords.keywordMap[token] == 'frag':
+                if token in self.keywords.keywordMap and self.keywords.keywordMap[token] == 'frag':
                     match state:
                         case 'frag':
                             state = 'frag'
@@ -98,18 +92,18 @@ class midPaser:
                             fragtoken.append(token)
                             percentfrag = frag(Id=len(fatherfrag)+1,fragType=token+str(fragtoken.count(token)+1))
                             pytable.append(percentfrag)
-                            percentfrag.code+=token
+                            percentfrag.code+=token+' '
                         case 'in':
-                            percentfrag.code+=token
+                            percentfrag.code+=token+' '
                             percentfrag.propertys.update({percentfrag.propertys["IN"]:percentfrag.propertys["IN"]+token})
                         case '(': #中间作为无结构语义的代码段
-                            percentfrag.code+=token
+                            percentfrag.code+=token+' '
                         case 'sonfrag':
                             state = 'frag'
                             #添加当前结构的子结构
                             fatherfrag.append(percentfrag)
                             percentfrag.sonfrag.append(percentfrag:=frag(Id=len(fatherfrag)+1,fragType=token+str(fragtoken.count(token)+1)))
-                            percentfrag.code+=token
+                            percentfrag.code+=token+' '
                         case 'fatherfrag':
                             state = 'frag'
                             #添加父结构的子结构
@@ -117,14 +111,14 @@ class midPaser:
                             fatherfrag[-1].fragType = f"{fatherfrag[-1].fragType}_{percentfrag.fragType}"
                             percentfrag = fatherfrag[-1]
                             percentfrag.sonfrag.append(percentfrag:=frag(Id=len(fatherfrag)+1,fragType=token+str(fragtoken.count(token)+1)))
-                            percentfrag.code+=token
+                            percentfrag.code+=token+' '
                         case None: #第一次产生状态
                             state = 'frag'
                             pytable.append(percentfrag:=frag(Id=len(fatherfrag)+1,fragType=token))
-                            percentfrag.code+=token
+                            percentfrag.code+=token+' '
                         case _ :
                             raise Exception(f"error frag to {token} symbol in {state} state")
-                elif self.keywords.keywordMap[token] == 'in': #in也是frag
+                elif token in self.keywords.keywordMap and self.keywords.keywordMap[token] == 'in': #in也是frag
                     match state:
                         case 'frag':
                             state = 'in'
@@ -134,15 +128,15 @@ class midPaser:
                             fragtoken.append(token)
                             percentfrag = frag(Id=len(fatherfrag)+1,fragType=token+str(fragtoken.count(token)+1))
                             pytable.append(percentfrag)
-                            percentfrag.code+=token
+                            percentfrag.code+=token+' '
                             percentfrag.propertys.update({"IN":token})
                         case '(':
-                            percentfrag.code+=token
+                            percentfrag.code+=token+' '
                         case 'sonfrag':
                             state = 'in'
                             fatherfrag.append(percentfrag)
                             percentfrag.sonfrag.append(percentfrag:=frag(Id=len(fatherfrag)+1,fragType=token+str(fragtoken.count(token)+1)))
-                            percentfrag.code+=token
+                            percentfrag.code+=token+' '
                             percentfrag.propertys.update({"IN":token})
                         case 'fatherfrag':
                             state = 'in'
@@ -150,27 +144,27 @@ class midPaser:
                             fatherfrag[-1].fragType = f"{fatherfrag[-1].fragType}_{percentfrag.fragType}"
                             percentfrag = fatherfrag[-1]
                             percentfrag.sonfrag.append(percentfrag:=frag(Id=len(fatherfrag)+1,fragType=token+str(fragtoken.count(token)+1)))
-                            percentfrag.code+=token
+                            percentfrag.code+=token+' '
                             percentfrag.propertys.update({"IN":token})
                         case None:
                             state = 'in'
                             pytable.append(percentfrag:=frag(Id=len(fatherfrag)+1,fragType=token))
-                            percentfrag.code+=token
+                            percentfrag.code+=token+' '
                             percentfrag.propertys.update({"IN":token})
                         case _ :
                             raise Exception(f"error in to {token} symbol in {state} state")
-                elif self.keywords.keywordMap[token] == 'out':
+                elif token in self.keywords.keywordMap and self.keywords.keywordMap[token] == 'out':
                     match state:
                         case '(':
-                            percentfrag.code+=token
+                            percentfrag.code+=token+' '
                         case 'sonfrag':
                             state = 'frag'
-                            percentfrag.code+=token
+                            percentfrag.code+=token+' '
                             percentfrag.propertys.update({"OUT":percentfrag.propertys["IN"]})
                             percentfrag.propertys.pop("IN")
                         case 'fatherfrag':
                             state = 'frag'
-                            percentfrag.code+=token
+                            percentfrag.code+=token+' '
                             fatherfrag=fatherfrag[0:-(tab_diff-1)]
                             fatherfrag[-1].propertys.update({"OUT":fatherfrag[-1].propertys["IN"]})
                             fatherfrag[-1].propertys.pop("IN")
@@ -180,12 +174,12 @@ class midPaser:
                 elif token == ':':
                     match state:
                         case 'frag':
-                            percentfrag.code+=token
+                            percentfrag.code+=token+' '
                         case 'in':
                             state = 'frag'
-                            percentfrag.code+=token
+                            percentfrag.code+=token+' '
                         case '(':
-                            percentfrag.code+=token
+                            percentfrag.code+=token+' '
                         case _ :
                             raise Exception(f"error : symbol to {state} state")
                 elif token == '^TAB':
@@ -194,12 +188,15 @@ class midPaser:
                 elif token == '(':
                     match state:
                         case 'frag':
-                            state = 'input'
+                            state = '('
+                            percentfrag.code+=token+' '
                         case 'in':
                             state = '('
+                            percentfrag.code+=token+' '
                         case '(':
                             state = '('
                             fatherbracket+=1
+                            percentfrag.code+=token+' '
                         case None:
                             pass
                 elif token == ')':
@@ -209,32 +206,30 @@ class midPaser:
                                 state = 'frag'
                             else:
                                 fatherbracket-=1
+                            percentfrag.code+=token+' '
                         case _ :
                             raise Exception(f"error ) symbol to {state} state")
             else: #是普通的token字段
                 match state:
                         case 'frag':
-                            percentfrag.code+=token
+                            percentfrag.code+=token+' '
                         case 'in':
-                            percentfrag.code+=token
+                            percentfrag.code+=token+' '
                             percentfrag.propertys.update({"IN":percentfrag.propertys['IN']+token})
                         case '(':
-                            percentfrag.code+=token
-                        case 'input':
-                            percentfrag.code+=token
-                            percentfrag.propertys.update({"INPUT":token if 'INPUT' not in percentfrag.propertys  else percentfrag.propertys['INPUT']+token})
+                            percentfrag.code+=token+' '
                         case 'sonfrag':
                             state = 'frag'
                             fatherfrag.append(percentfrag)
                             percentfrag.sonfrag.append(percentfrag:=frag(Id=len(fatherfrag)+1,fragType=token+str(fragtoken.count(token)+1)))
-                            percentfrag.code+=token
+                            percentfrag.code+=token+' '
                         case 'fatherfrag':
                             state = 'frag'
                             fatherfrag=fatherfrag[0:-(tab_diff-1)]
                             fatherfrag[-1].fragType = f"{fatherfrag[-1].fragType}_{percentfrag.fragType}"
                             percentfrag = fatherfrag[-1]
                             percentfrag.sonfrag.append(percentfrag:=frag(Id=len(fatherfrag)+1,fragType=token+str(fragtoken.count(token)+1)))
-                            percentfrag.code+=token
+                            percentfrag.code+=token+' '
                         case _ :
                             raise Exception(f"error {token} symbol to {state} state")
         return pytable
@@ -298,4 +293,7 @@ def symbolHeighLightDivideBracket(index:int,token_vector:list[str],symbol:str):
         raise ValueError
     return index,token_vector
 if __name__ == '__main__':
-    print(vec:=midPaser.vectorize('C:/Users/whereslow/Desktop/b.py'))
+    parser = midPaser("C:/Users/whereslow/Desktop/pythonmid/resource/keywords.json")
+    vec=parser.vectorize('C:/Users/whereslow/Desktop/b.py')
+    table = parser.parse(vec)
+    print(table)
