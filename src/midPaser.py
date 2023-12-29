@@ -167,11 +167,11 @@ class midPaser:
                             percentfrag.propertys.pop("IN")
                         case 'fatherfrag':
                             state = 'frag'
-                            percentfrag.code+=token+' '
                             fatherfrag=fatherfrag[0:-(tab_diff-1) if tab_diff>0 else -1]
                             fatherfrag[-1].propertys.update({"OUT":fatherfrag[-1].propertys["IN"]})
                             fatherfrag[-1].propertys.pop("IN")
-                            fatherfrag[-1].propertys.update({"OUTPOS":percentfrag.fragType})
+                            fatherfrag[-1].propertys.update({"OUTPOS":len(percentfrag.code)})
+                            percentfrag.code+=token+' '
                         case _ :
                             raise Exception(f"error out to {token} symbol in {state} state")
                 elif token == ':':
