@@ -2,6 +2,7 @@ import json
 
 from dataclasses import dataclass,field
 from typing import List
+from numba import njit
 @dataclass
 class frag:
     Id:int      #1,2,3...
@@ -55,7 +56,7 @@ class midPaser:
                     i,token_vector = symbolHeighLightDivideBracket(i,token_vector,')')
             return token_vector
     def parse(self,tokenVec:list[str]) -> PyTable:
-        divideSymbols = {'^TAB','(',')'}
+        divideSymbols = {'^TAB','(',')',':'}
         state = None
         #转移容器
         pytable = []
@@ -178,6 +179,7 @@ class midPaser:
                     match state:
                         case 'frag':
                             percentfrag.code+=token+' '
+                            tab_state =0 if tab_state==0 else tab_state-1 # 替代换行
                         case 'in':
                             state = 'frag'
                             percentfrag.code+=token+' '
@@ -186,6 +188,9 @@ class midPaser:
                         case _ :
                             raise Exception(f"error : symbol to {state} state")
                 elif token == '^TAB':
+                    if tab_count == 0:
+                        percentfrag.code = percentfrag.code[:-1]
+                        percentfrag.code+='\n'
                     tab_count+=1
                     percentfrag.code+="    "
                 elif token == '(':
