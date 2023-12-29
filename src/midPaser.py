@@ -2,7 +2,6 @@ import json
 
 from dataclasses import dataclass,field
 from typing import List
-from numba import njit
 @dataclass
 class frag:
     Id:int      #1,2,3...
