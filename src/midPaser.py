@@ -114,7 +114,7 @@ class midPaser:
                             percentfrag.code+=token+' '
                         case None: #第一次产生状态
                             state = 'frag'
-                            pytable.append(percentfrag:=frag(Id=len(fatherfrag)+1,fragType=token))
+                            pytable.append(percentfrag:=frag(Id=len(fatherfrag)+1,fragType=token+"#"+str(fragtoken.count(token)+1)))
                             percentfrag.code+=token+' '
                         case _ :
                             raise Exception(f"error frag to {token} symbol in {state} state")
@@ -151,7 +151,7 @@ class midPaser:
                             percentfrag.propertys.update({"IN":' '+token})
                         case None:
                             state = 'in'
-                            pytable.append(percentfrag:=frag(Id=len(fatherfrag)+1,fragType=token))
+                            pytable.append(percentfrag:=frag(Id=len(fatherfrag)+1,fragType=token+"#"+str(fragtoken.count(token)+1)))
                             percentfrag.code+=token+' '
                             percentfrag.propertys.update({"IN":' '+token})
                         case _ :
