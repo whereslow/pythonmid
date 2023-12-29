@@ -89,10 +89,11 @@ class midPaser:
                             percentfrag.fragType = f"{len(fatherfrag)+1}-{percentfrag.fragType}"
                             fatherfrag.clear()
                             
-                            fragtoken.append(token)
                             percentfrag = frag(Id=len(fatherfrag)+1,fragType=token+"#"+str(fragtoken.count(token)+1))
                             pytable.append(percentfrag)
                             percentfrag.code+=token+' '
+                            
+                            fragtoken.append(token)
                         case 'in':
                             percentfrag.code+=token+' '
                             percentfrag.propertys.update({percentfrag.propertys["IN"]:percentfrag.propertys["IN"]+' '+token})
@@ -104,6 +105,8 @@ class midPaser:
                             fatherfrag.append(percentfrag)
                             percentfrag.sonfrag.append(percentfrag:=frag(Id=len(fatherfrag)+1,fragType=token+"#"+str(fragtoken.count(token)+1)))
                             percentfrag.code+=token+' '
+                            
+                            fragtoken.append(token)
                         case 'fatherfrag':
                             state = 'frag'
                             #添加父结构的子结构
@@ -112,10 +115,14 @@ class midPaser:
                             percentfrag = fatherfrag[-1]
                             percentfrag.sonfrag.append(percentfrag:=frag(Id=len(fatherfrag)+1,fragType=token+"#"+str(fragtoken.count(token)+1)))
                             percentfrag.code+=token+' '
+                            
+                            fragtoken.append(token)
                         case None: #第一次产生状态
                             state = 'frag'
                             pytable.append(percentfrag:=frag(Id=len(fatherfrag)+1,fragType=token+"#"+str(fragtoken.count(token)+1)))
                             percentfrag.code+=token+' '
+                            
+                            fragtoken.append(token)
                         case _ :
                             raise Exception(f"error frag to {token} symbol in {state} state")
                 elif token in self.keywords.keywordMap and self.keywords.keywordMap[token] == 'in': #in也是frag
@@ -125,11 +132,12 @@ class midPaser:
                             percentfrag.fragType = f"{len(fatherfrag)+1}-{percentfrag.fragType}"
                             fatherfrag.clear()
                             
-                            fragtoken.append(token)
                             percentfrag = frag(Id=len(fatherfrag)+1,fragType=token+"#"+str(fragtoken.count(token)+1))
                             pytable.append(percentfrag)
                             percentfrag.code+=token+' '
                             percentfrag.propertys.update({"IN":' '+token})
+                            
+                            fragtoken.append(token)
                         case '(':
                             percentfrag.code+=token+' '
                         case 'in':
@@ -141,6 +149,8 @@ class midPaser:
                             percentfrag.sonfrag.append(percentfrag:=frag(Id=len(fatherfrag)+1,fragType=token+"#"+str(fragtoken.count(token)+1)))
                             percentfrag.code+=token+' '
                             percentfrag.propertys.update({"IN":' '+token})
+                            
+                            fragtoken.append(token)
                         case 'fatherfrag':
                             state = 'in'
                             fatherfrag=fatherfrag[0:-(tab_diff-1) if tab_diff>0 else -1]
@@ -149,11 +159,15 @@ class midPaser:
                             percentfrag.sonfrag.append(percentfrag:=frag(Id=len(fatherfrag)+1,fragType=token+"#"+str(fragtoken.count(token)+1)))
                             percentfrag.code+=token+' '
                             percentfrag.propertys.update({"IN":' '+token})
+                            
+                            fragtoken.append(token)
                         case None:
                             state = 'in'
                             pytable.append(percentfrag:=frag(Id=len(fatherfrag)+1,fragType=token+"#"+str(fragtoken.count(token)+1)))
                             percentfrag.code+=token+' '
                             percentfrag.propertys.update({"IN":' '+token})
+                            
+                            fragtoken.append(token)
                         case _ :
                             raise Exception(f"error in to {token} symbol {state} state")
                 elif token in self.keywords.keywordMap and self.keywords.keywordMap[token] == 'out':
@@ -236,6 +250,8 @@ class midPaser:
                             fatherfrag.append(percentfrag)
                             percentfrag.sonfrag.append(percentfrag:=frag(Id=len(fatherfrag)+1,fragType=token+"#"+str(fragtoken.count(token)+1)))
                             percentfrag.code+=token+' '
+                            
+                            fragtoken.append(token)
                         case 'fatherfrag':
                             state = 'frag'
                             fatherfrag=fatherfrag[0:-(tab_diff-1) if tab_diff>0 else -1]
@@ -243,6 +259,8 @@ class midPaser:
                             percentfrag = fatherfrag[-1]
                             percentfrag.sonfrag.append(percentfrag:=frag(Id=len(fatherfrag)+1,fragType=token+"#"+str(fragtoken.count(token)+1)))
                             percentfrag.code+=token+' '
+                            
+                            fragtoken.append(token)
                         case _ :
                             raise Exception(f"error {token} symbol to {state} state")
         return pytable
