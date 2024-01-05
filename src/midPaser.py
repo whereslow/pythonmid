@@ -37,7 +37,7 @@ class midPaser:
         pass
     def vectorize(self,filename:str) ->list[str]:
         with open(filename,'r',encoding='utf-8') as f:
-            token_vector=f.read().replace('    ','^TAB ').replace("\n"," ").split(" ")
+            token_vector=f.read().replace('    ','^TAB ').replace("\n","^TAB ").split(" ")
             try:
                 while True:
                     token_vector.remove('')
