@@ -87,7 +87,7 @@ class midPaser:
                         case 'frag':
                             state = 'frag'
                             percentfrag.fragType = f"{len(fatherfrag)+1}-{percentfrag.fragType}"
-                            fatherfrag.clear()
+                            fatherfrag.clear() #不清空父结构,而是迁移到同水平的子结构
                             
                             percentfrag = frag(Id=len(fatherfrag)+1,fragType=token+"#"+str(fragtoken.count(token)+1))
                             pytable.append(percentfrag)
@@ -130,7 +130,7 @@ class midPaser:
                         case 'frag':
                             state = 'in'
                             percentfrag.fragType = f"{len(fatherfrag)+1}-{percentfrag.fragType}"
-                            fatherfrag.clear()
+                            fatherfrag.clear() #不清空父结构,而是迁移到同水平的子结构
                             
                             percentfrag = frag(Id=len(fatherfrag)+1,fragType=token+"#"+str(fragtoken.count(token)+1))
                             pytable.append(percentfrag)
@@ -264,7 +264,7 @@ class midPaser:
                         case _ :
                             raise Exception(f"error {token} symbol to {state} state")
         return pytable
-#特殊字符处理的工具函数,后期重写
+#特殊字符处理的工具函数,迟早重写
 def symbolDivideHeighLightSemicolon(index:int,token_vector:list[str],symbol=':'):
     #apear once
     assert symbol == ':'
@@ -326,5 +326,4 @@ def symbolHeighLightDivideBracket(index:int,token_vector:list[str],symbol:str):
 if __name__ == '__main__':
     parser = midPaser("C:/Users/whereslow/Desktop/pythonmid/resource/keywords.json")
     vec=parser.vectorize('C:/Users/whereslow/Desktop/b.py')
-    table = parser.parse(vec)
-    print(table)
+    print(vec)
