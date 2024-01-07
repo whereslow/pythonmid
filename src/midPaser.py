@@ -2,6 +2,8 @@ import re
 from xml.dom import minidom
 from dataclasses import dataclass,field
 from typing import List,Dict
+import json5
+
 @dataclass
 class fragment:
     line:int
@@ -45,6 +47,8 @@ class midPaser:
         
         with open(xmlPath,'w',encoding='utf-8') as f:
             root.writexml(f,encoding='utf-8',addindent='\t',newl='\n')
+    def dumpPyTableToJson(pyTable,jsonPath) -> None:
+        pass
     def dumpPyTableToPython(pyTable,pythonPath) -> None:
         pass
     def changePyTable(pyTable,changeDict):
