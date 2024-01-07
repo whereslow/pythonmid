@@ -11,8 +11,8 @@ class fragment:
 class midPaser:
     def loadPyTableFromPython(pythonPath):
         pass
-    def dumpPyTableToXml(self,mainfragment:fragment,xmlPath) -> None:#error
-        def createnode(node:minidom.Element,percentfragment:fragment):
+    def dumpPyTableToXml(self,mainfragment:fragment,xmlPath) -> None:
+        def createcontext(node:minidom.Element,percentfragment:fragment):
             linenode=root.createElement("line")
             node.appendChild(linenode)
             linenode.appendChild(root.createTextNode(str(percentfragment.line)))
@@ -21,11 +21,22 @@ class midPaser:
             for i in percentfragment.code:
                 codenode.appendChild(codetextnode:=root.createElement(i))
                 codetextnode.appendChild(root.createTextNode(percentfragment.code[i]))
-                
-            for i in percentfragment.sonfrag:
-                sonfragmentnode=root.createElement("fragment")
-                node.appendChild(sonfragmentnode)
-                createnode(sonfragmentnode,i)
+        def createnode(node:minidom.Element,percentfragment:fragment):
+            createcontext(node,percentfragment)
+            fq = []
+            nodeq = []
+            while True:
+                for i in percentfragment.sonfrag:
+                    fq.append(i)
+                    pnode = root.createElement("fragment")
+                    nodeq.append(pnode)
+                    node.appendChild(pnode)
+                    createcontext(pnode,i)
+                if nodeq == []:#即fq == []
+                    break
+                else:
+                    node = nodeq.pop(0)
+                    percentfragment = fq.pop(0)
                 
         root = minidom.Document()
         fragmentnode=root.createElement("fragment")
