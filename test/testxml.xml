@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rootfragment>
+	<line>0</line>
+	<code/>
+	<fragment>
+		<line>1</line>
+		<code>
+			<1>def find_primeroot(p):
+</1>
+			<12>    print(&quot;primary root:&quot;,root,len(root))
+</12>
+		</code>
+		<fragment>
+			<line>2</line>
+			<code>
+				<2>    nroot=[]
+</2>
+			</code>
+		</fragment>
+		<fragment>
+			<line>3</line>
+			<code>
+				<3>    root=[]
+</3>
+			</code>
+		</fragment>
+		<fragment>
+			<line>4</line>
+			<code>
+				<4>    for i in range(2,p):
+</4>
+			</code>
+			<fragment>
+				<line>5</line>
+				<code>
+					<5>        for j in range(2,p-1):
+</5>
+					<9>            elif j+1==p-1:
+</9>
+				</code>
+				<fragment>
+					<line>6</line>
+					<code>
+						<6>            if i**j%p==1:
+</6>
+					</code>
+					<fragment>
+						<line>7</line>
+						<code>
+							<7>                nroot.append(i)
+</7>
+						</code>
+					</fragment>
+					<fragment>
+						<line>8</line>
+						<code>
+							<8>                break
+</8>
+						</code>
+					</fragment>
+				</fragment>
+				<fragment>
+					<line>10</line>
+					<code>
+						<10>                root.append(i)
+</10>
+					</code>
+				</fragment>
+				<fragment>
+					<line>11</line>
+					<code>
+						<11>                break
+</11>
+					</code>
+				</fragment>
+			</fragment>
+		</fragment>
+		<fragment>
+			<line>13</line>
+			<code>
+				<13>    print(nroot,len(nroot))
+</13>
+			</code>
+		</fragment>
+	</fragment>
+	<fragment>
+		<line>15</line>
+		<code>
+			<14>find_primeroot(11)</14>
+		</code>
+	</fragment>
+</rootfragment>

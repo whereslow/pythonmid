@@ -1,8 +1,8 @@
 import re
-from xml.dom import minidom #仅适用于可信环境
+from xml.dom import minidom #just for credible data
 from dataclasses import dataclass,field
+from collections import OrderedDict
 from typing import List,Dict
-import json5
 
 @dataclass
 class fragment:
@@ -11,9 +11,6 @@ class fragment:
     code:dict[str] = field(default_factory=Dict)
 
 class midPaser:
-    @staticmethod
-    def loadPyTableFromPython(pythonPath):
-        pass
     @staticmethod
     def dumpFragmentToXml(mainfragment:fragment,xmlPath) -> None:
         def createcontext(node:minidom.Element,percentfragment:fragment):
@@ -43,18 +40,18 @@ class midPaser:
                     percentfragment = fq.pop(0)
                 
         root = minidom.Document()
-        fragmentnode=root.createElement("fragment")
+        fragmentnode=root.createElement("rootfragment")
         createnode(fragmentnode,mainfragment)
         root.appendChild(fragmentnode)
         
         with open(xmlPath,'w',encoding='utf-8') as f:
             root.writexml(f,encoding='utf-8',addindent='\t',newl='\n')
     @staticmethod
-    def dumpFragmentToJson(pyTable,jsonPath) -> None:
-        pass
-    @staticmethod
-    def dumpFragmentToPython(pyTable,pythonPath) -> None:
-        pass
+    def dumpFragmentToPython(mainfragment,pythonPath) -> None:
+        codemap=midPaser.parseFragmentToMap(mainfragment)
+        with open(pythonPath,'w',encoding='utf-8') as f:
+            for i in range(1,len(codemap)+1):
+                f.write(codemap[i])
     @staticmethod
     def changeFragments(pyTable,changeDict):
         pass
@@ -68,10 +65,29 @@ class midPaser:
             token_vector = list(filter(None,re.split(r'(\n)|(\^TAB)',strings)))
             return token_vector
     @staticmethod
-    def parseFragmentToMap():
-        pass
+    def parseFragmentToMap(mainfragment:fragment): #out first
+        fragment_map = dict()
+        fq = []
+        percent_fragment = mainfragment
+        while True:
+            for i in percent_fragment.sonfrag:
+                fq.append(i)
+                for j in i.code:
+                    fragment_map[j] = i.code[j]
+            if fq == []:
+                break
+            else:
+                percent_fragment = fq.pop(0)
+        sortedmap = OrderedDict()
+        for i in range(1,len(fragment_map)+1):
+            sortedmap[i] = fragment_map[str(i)]
+        return sortedmap
+
     @staticmethod
-    def parsePythonToFragment(tokenVec:list[str]) -> fragment:
+    def parsePythonToFragment(tokenVec:list[str]) -> fragment: #in first
+        """
+            use for no class and just simple structure python code
+        """
         percent_line = 0
         tab_state = -1
         tab_count = 0
@@ -107,7 +123,7 @@ class midPaser:
                     if tab_count != (temp_fragment.code[min(temp_fragment.code)].count('    ') if temp_fragment.code !={} else tab_count):
                         percent_fragment.code[str(percent_line)] = tab_count*'    '+token
                     percent_line += 1
-                    #父对象作用量
+                    
                     father_fragment = father_fragment[:tab_diff]
                     if tab_count == (temp_fragment.code[min(temp_fragment.code)].count('    ') if temp_fragment.code !={} else -tab_count):
                         percent_fragment = fragment(line=percent_line,sonfrag=[],code={})
@@ -116,5 +132,6 @@ class midPaser:
                         father_fragment.append(percent_fragment)
         return mainFragment
 if __name__ == '__main__':
-    vec=midPaser.vectorize('C:/Users/whereslow/Desktop/b.py')
-    midPaser.dumpFragmentToXml(midPaser.parsePythonToFragment(vec),'C:/Users/whereslow/Desktop/b.xml')
+    vec=midPaser.vectorize('./test/testcode.py')
+    midPaser.dumpFragmentToXml(midPaser.parsePythonToFragment(vec),'./test/testxml.xml')
+    midPaser.dumpFragmentToPython(midPaser.parsePythonToFragment(vec),'./test/testcodeTran.py')
