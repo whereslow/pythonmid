@@ -71,7 +71,6 @@ class midPaser:
         for token in tokenVec:
             if token == "\n":
                 tab_count = 0
-                tab_state = 0
                 percent_fragment.code[str(percent_line-1)] += token
             elif token == "^TAB":
                 tab_count += 1
@@ -85,18 +84,27 @@ class midPaser:
                     percent_line += 1
                     
                     percent_fragment = percent_fragment.sonfrag[-1]
-                    percent_fragment.code[str(percent_line-1)] = token
+                    percent_fragment.code[str(percent_line-1)] = tab_count*"    "+token
                 elif tab_diff == 0:
                     father_fragment[-1].sonfrag.append(fragment(line=percent_line,sonfrag=[],code={}))
                     percent_line += 1
                     percent_fragment = father_fragment[-1].sonfrag[-1]
-                    percent_fragment.code[str(percent_line-1)] = token
+                    percent_fragment.code[str(percent_line-1)] = tab_count*"    "+token
                 elif tab_diff < 0:
-                    percent_line += 1 
                     percent_fragment = father_fragment[tab_diff-1]
-                    percent_fragment.code[str(percent_line-1)] = token
+                    temp_fragment = father_fragment[tab_diff-1]
+                    if tab_count != (temp_fragment.code[min(temp_fragment.code)].count('    ') if temp_fragment.code !={} else tab_count):
+                        percent_fragment.code[str(percent_line)] = tab_count*'    '+token
+                    percent_line += 1
+                    #父对象作用量
+                    father_fragment = father_fragment[:tab_diff]
+                    if tab_count == (temp_fragment.code[min(temp_fragment.code)].count('    ') if temp_fragment.code !={} else -tab_count):
+                        percent_fragment = fragment(line=percent_line,sonfrag=[],code={})
+                        percent_fragment.code[str(percent_line-1)] = tab_count*'    '+ token
+                        father_fragment[-1].sonfrag.append(percent_fragment)
+                        father_fragment.append(percent_fragment)
         return mainFragment
 if __name__ == '__main__':
     parser = midPaser()
     vec=parser.vectorize('C:/Users/whereslow/Desktop/b.py')
-    parser.dumpPyTableToXml(parser.parse(vec).sonfrag[0],'C:/Users/whereslow/Desktop/b.xml')
+    parser.dumpPyTableToXml(parser.parse(vec),'C:/Users/whereslow/Desktop/b.xml')
