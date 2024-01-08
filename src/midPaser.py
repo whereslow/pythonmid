@@ -1,5 +1,5 @@
 import re
-from xml.dom import minidom
+from xml.dom import minidom #仅适用于可信环境
 from dataclasses import dataclass,field
 from typing import List,Dict
 import json5
@@ -11,9 +11,11 @@ class fragment:
     code:dict[str] = field(default_factory=Dict)
 
 class midPaser:
+    @staticmethod
     def loadPyTableFromPython(pythonPath):
         pass
-    def dumpPyTableToXml(self,mainfragment:fragment,xmlPath) -> None:
+    @staticmethod
+    def dumpFragmentToXml(mainfragment:fragment,xmlPath) -> None:
         def createcontext(node:minidom.Element,percentfragment:fragment):
             linenode=root.createElement("line")
             node.appendChild(linenode)
@@ -47,20 +49,29 @@ class midPaser:
         
         with open(xmlPath,'w',encoding='utf-8') as f:
             root.writexml(f,encoding='utf-8',addindent='\t',newl='\n')
-    def dumpPyTableToJson(pyTable,jsonPath) -> None:
+    @staticmethod
+    def dumpFragmentToJson(pyTable,jsonPath) -> None:
         pass
-    def dumpPyTableToPython(pyTable,pythonPath) -> None:
+    @staticmethod
+    def dumpFragmentToPython(pyTable,pythonPath) -> None:
         pass
-    def changePyTable(pyTable,changeDict):
+    @staticmethod
+    def changeFragments(pyTable,changeDict):
         pass
-    def diffPyTable(pyTable1,pyTable2):
+    @staticmethod
+    def diffFragment(pyTable1,pyTable2):
         pass
-    def vectorize(self,filename:str) ->list[str]:
+    @staticmethod
+    def vectorize(filename:str) ->list[str]:
         with open(filename,'r',encoding='utf-8') as f:
             strings = f.read().replace('    ',"^TAB")
             token_vector = list(filter(None,re.split(r'(\n)|(\^TAB)',strings)))
             return token_vector
-    def parse(self,tokenVec:list[str]) -> fragment:
+    @staticmethod
+    def parseFragmentToMap():
+        pass
+    @staticmethod
+    def parsePythonToFragment(tokenVec:list[str]) -> fragment:
         percent_line = 0
         tab_state = -1
         tab_count = 0
@@ -105,6 +116,5 @@ class midPaser:
                         father_fragment.append(percent_fragment)
         return mainFragment
 if __name__ == '__main__':
-    parser = midPaser()
-    vec=parser.vectorize('C:/Users/whereslow/Desktop/b.py')
-    parser.dumpPyTableToXml(parser.parse(vec),'C:/Users/whereslow/Desktop/b.xml')
+    vec=midPaser.vectorize('C:/Users/whereslow/Desktop/b.py')
+    midPaser.dumpFragmentToXml(midPaser.parsePythonToFragment(vec),'C:/Users/whereslow/Desktop/b.xml')
