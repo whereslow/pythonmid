@@ -148,3 +148,4 @@ if __name__ == '__main__':
     vec=midPaser.vectorize('./test/testcode.py')
     midPaser.dumpFragmentToXml(midPaser.parsePythonToFragment(vec),'./test/testxml.xml')
     midPaser.dumpFragmentToPython(midPaser.parsePythonToFragment(vec),'./test/testcodeTran.py')
+    
