@@ -53,11 +53,24 @@ class midPaser:
             for i in range(1,len(codemap)+1):
                 f.write(codemap[i])
     @staticmethod
-    def changeFragments(pyTable,changeDict):
-        pass
+    def changeFragments(mainfragment,changefragment): #changefragment is the fragment to change of mainfragment
+        fragment_map = midPaser.parseFragmentToMap(mainfragment)
+        change_map = midPaser.parseFragmentToMap(changefragment)
+        for i in change_map:
+            fragment_map[i] = change_map[i]
+        return change_map
     @staticmethod
-    def diffFragment(pyTable1,pyTable2):
-        pass
+    def diffFragment(fragment1,fragment2):
+        diff_map = OrderedDict()
+        fragment_map1 = midPaser.parseFragmentToMap(fragment1)
+        fragment_map2 = midPaser.parseFragmentToMap(fragment2)
+        for i in fragment1:
+            if i not in fragment_map2:
+                diff_map[i] = f"{fragment1[i]}:{None}"
+            else:
+                if fragment_map1[i]!= fragment_map2[i]:
+                    diff_map[i] = f"{fragment1[i]}:{fragment2[i]}"
+        return diff_map
     @staticmethod
     def vectorize(filename:str) ->list[str]:
         with open(filename,'r',encoding='utf-8') as f:
