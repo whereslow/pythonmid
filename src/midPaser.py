@@ -53,9 +53,9 @@ class midPaser:
             for i in range(1,len(codemap)+1):
                 f.write(codemap[i])
     @staticmethod
-    def changeFragments(mainfragment,changefragment): #changefragment is the fragment to change of mainfragment
+    def changeFragments(mainfragment,changedfragment): #changefragment is the fragment to change of mainfragment
         fragment_map = midPaser.parseFragmentToMap(mainfragment)
-        change_map = midPaser.parseFragmentToMap(changefragment)
+        change_map = midPaser.parseFragmentToMap(changedfragment)
         for i in change_map:
             fragment_map[i] = change_map[i]
         return change_map
