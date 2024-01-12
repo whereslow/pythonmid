@@ -1,5 +1,5 @@
 # pythonmid
-to generate the mid describtion of the python file(.xml) to use a standard format to cooperate with GPT     
+to generate the mid describtion of the python file(xml chunk that divided by TAB(the retract)) to use a standard format to cooperate with GPT     
 this project is the basework and it is simple
 # details
 use .xml format to describe the python middle file     
