@@ -54,11 +54,11 @@ class midPaser:
                 f.write(codemap[i])
     @staticmethod
     def changeFragments(mainfragment,changedfragment): #changefragment is the fragment to change of mainfragment
-        fragment_map = midPaser.parseFragmentToMap(mainfragment)
+        main_fragment_map = midPaser.parseFragmentToMap(mainfragment)
         change_map = midPaser.parseFragmentToMap(changedfragment)
         for i in change_map:
-            fragment_map[i] = change_map[i]
-        return change_map
+            main_fragment_map[i] = change_map[i]
+        return main_fragment_map
     @staticmethod
     def diffFragment(fragment1,fragment2):
         diff_map = OrderedDict()
