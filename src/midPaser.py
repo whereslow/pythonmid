@@ -3,7 +3,7 @@ from xml.dom import minidom #just for credible data
 from dataclasses import dataclass,field
 from collections import OrderedDict
 from typing import List,Dict
-
+import json5
 @dataclass
 class fragment:
     line:int
@@ -11,8 +11,22 @@ class fragment:
     code:dict[str] = field(default_factory=Dict)
 
 class midPaser:
+    def __init__(self,initFile:str):
+        with open(initFile,"r") as f:
+            tag_dict=json5.load(f)
+        self.tag_dict=tag_dict
     @staticmethod
-    def dumpFragmentToXml(mainfragment:fragment,xmlPath) -> None:
+    def back(self,token) -> bool:
+        if token in self.tag_dict and self.tag_dict[token] == "back":
+            return True
+        else:
+            return False
+    def enter(self,token) -> bool:
+        if token in self.tag_dict and self.tag_dict[token] == "enter":
+            return True
+        else:
+            return False
+    def dumpFragmentToXml(self,mainfragment:fragment,xmlPath) -> None:
         def createcontext(node:minidom.Element,percentfragment:fragment):
             linenode=root.createElement("line")
             node.appendChild(linenode)
@@ -22,7 +36,7 @@ class midPaser:
             for i in percentfragment.code:
                 codenode.appendChild(codetextnode:=root.createElement(i))
                 codetextnode.appendChild(root.createTextNode(percentfragment.code[i]))
-        def createnode(node:minidom.Element,percentfragment:fragment):
+        def createnode(self,node:minidom.Element,percentfragment:fragment):
             createcontext(node,percentfragment)
             fq = []
             nodeq = []
@@ -47,20 +61,20 @@ class midPaser:
         with open(xmlPath,'w',encoding='utf-8') as f:
             root.writexml(f,encoding='utf-8',addindent='\t',newl='\n')
     @staticmethod
-    def dumpFragmentToPython(mainfragment,pythonPath) -> None:
+    def dumpFragmentToPython(self,mainfragment,pythonPath) -> None:
         codemap=midPaser.parseFragmentToMap(mainfragment)
         with open(pythonPath,'w',encoding='utf-8') as f:
             for i in range(1,len(codemap)+1):
                 f.write(codemap[i])
     @staticmethod
-    def changeFragments(mainfragment,changedfragment): #changefragment is the fragment to change of mainfragment
+    def changeFragments(self,mainfragment,changedfragment): #changefragment is the fragment to change of mainfragment
         main_fragment_map = midPaser.parseFragmentToMap(mainfragment)
         change_map = midPaser.parseFragmentToMap(changedfragment)
         for i in change_map:
             main_fragment_map[i] = change_map[i]
         return main_fragment_map
     @staticmethod
-    def diffFragment(fragment1,fragment2):
+    def diffFragment(self,fragment1,fragment2):
         diff_map = OrderedDict()
         fragment_map1 = midPaser.parseFragmentToMap(fragment1)
         fragment_map2 = midPaser.parseFragmentToMap(fragment2)
@@ -72,13 +86,13 @@ class midPaser:
                     diff_map[i] = f"{fragment1[i]}:{fragment2[i]}"
         return diff_map
     @staticmethod
-    def vectorize(filename:str) ->list[str]:
+    def vectorize(self,filename:str) ->list[str]:
         with open(filename,'r',encoding='utf-8') as f:
             strings = f.read().replace('    ',"^TAB")
             token_vector = list(filter(None,re.split(r'(\n)|(\^TAB)',strings)))
             return token_vector
     @staticmethod
-    def parseFragmentToMap(mainfragment:fragment): #out first
+    def parseFragmentToMap(self,mainfragment:fragment): #out first
         fragment_map = dict()
         fq = []
         percent_fragment = mainfragment
@@ -97,7 +111,7 @@ class midPaser:
         return sortedmap
 
     @staticmethod
-    def parsePythonToFragment(tokenVec:list[str]) -> fragment: #in first
+    def parsePythonToFragment(self,tokenVec:list[str]) -> fragment: #in first
         """
             use for no class and just simple structure python code
         """
@@ -117,7 +131,7 @@ class midPaser:
             else:
                 tab_diff = tab_count - tab_state
                 tab_state = tab_count
-                if tab_diff > 0:
+                if tab_diff > 0 and self.enter(token):
                     father_fragment.append(percent_fragment)
                     
                     percent_fragment.sonfrag.append(fragment(line=percent_line,sonfrag=[],code={}))
@@ -125,12 +139,12 @@ class midPaser:
                     
                     percent_fragment = percent_fragment.sonfrag[-1]
                     percent_fragment.code[str(percent_line-1)] = tab_count*"    "+token
-                elif tab_diff == 0:
+                elif tab_diff == 0 and not self.back(token) and not self.enter(token):
                     father_fragment[-1].sonfrag.append(fragment(line=percent_line,sonfrag=[],code={}))
                     percent_line += 1
                     percent_fragment = father_fragment[-1].sonfrag[-1]
                     percent_fragment.code[str(percent_line-1)] = tab_count*"    "+token
-                elif tab_diff < 0:
+                elif tab_diff < 0 and self.back(token):
                     percent_fragment = father_fragment[tab_diff-1]
                     temp_fragment = father_fragment[tab_diff-1]
                     if tab_count != (temp_fragment.code[min(temp_fragment.code)].count('    ') if temp_fragment.code !={} else tab_count):
@@ -145,7 +159,5 @@ class midPaser:
                         father_fragment.append(percent_fragment)
         return mainFragment
 if __name__ == '__main__':
-    vec=midPaser.vectorize('./test/testcode.py')
-    midPaser.dumpFragmentToXml(midPaser.parsePythonToFragment(vec),'./test/testxml.xml')
-    midPaser.dumpFragmentToPython(midPaser.parsePythonToFragment(vec),'./test/testcodeTran.py')
+    parser = midPaser()
     
