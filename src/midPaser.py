@@ -26,6 +26,11 @@ class midPaser:
             return True
         else:
             return False
+    def pre_enter(self,token) -> bool: #doubt
+        if token in self.tag_dict and self.tag_dict[token] == "pre_enter":
+            return True
+        else:
+            return False
     def dumpFragmentToXml(self,mainfragment:fragment,xmlPath) -> None:
         def createcontext(node:minidom.Element,percentfragment:fragment):
             linenode=root.createElement("line")
@@ -128,10 +133,13 @@ class midPaser:
                 percent_fragment.code[str(percent_line-1)] += token
             elif token == "^TAB":
                 tab_count += 1
+            elif self.pre_enter(token):
+                pre_flag = 'pre_enter'
             else:
                 tab_diff = tab_count - tab_state
                 tab_state = tab_count
-                if tab_diff > 0 and self.enter(token):
+                if tab_diff > 0 and (self.enter(token) or self.pre_flag == 'enter'):
+                    self.pre_flag = None
                     father_fragment.append(percent_fragment)
                     
                     percent_fragment.sonfrag.append(fragment(line=percent_line,sonfrag=[],code={}))
